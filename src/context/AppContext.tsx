@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { Booking, BookingGuest, Hotel, Room, SearchParams, View } from '../types';
 import { hotels } from '../data/hotels';
+import { calculateNights } from '../utils/dateUtils';
 
 interface BookingDraft {
   hotel: Hotel | null;
@@ -32,6 +33,7 @@ interface AppContextValue {
 
   // Confirmed bookings
   bookings: Booking[];
+  lastConfirmedBookingId: string | null;
   confirmBooking: (guestInfo: BookingGuest) => Booking | null;
   cancelBooking: (id: string) => void;
 
@@ -68,6 +70,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     guests: 2,
   });
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [lastConfirmedBookingId, setLastConfirmedBookingId] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortBy, setSortBy] = useState('rating');
 
@@ -110,9 +113,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     (guestInfo: BookingGuest): Booking | null => {
       const { hotel, room, checkIn, checkOut, guests } = bookingDraft;
       if (!hotel || !room) return null;
-      const ci = new Date(checkIn);
-      const co = new Date(checkOut);
-      const nights = Math.max(1, Math.ceil((co.getTime() - ci.getTime()) / 86400000));
+      const nights = calculateNights(checkIn, checkOut);
       const newBooking: Booking = {
         id: `BK${Date.now()}`,
         hotelId: hotel.id,
@@ -132,6 +133,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         image: hotel.images[0],
       };
       setBookings((prev) => [newBooking, ...prev]);
+      setLastConfirmedBookingId(newBooking.id);
       navigate('confirmation');
       return newBooking;
     },
@@ -140,7 +142,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const cancelBooking = useCallback((id: string) => {
     setBookings((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, status: 'cancelled' } : b)),
+      prev.map((b) => (b.id === id ? { ...b, status: 'cancelled' as const } : b)),
     );
   }, []);
 
@@ -158,6 +160,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         bookingDraft,
         startBooking,
         bookings,
+        lastConfirmedBookingId,
         confirmBooking,
         cancelBooking,
         categoryFilter,

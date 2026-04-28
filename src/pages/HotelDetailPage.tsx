@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import StarRating from '../components/StarRating';
+import { calculateNights } from '../utils/dateUtils';
 import type { Room } from '../types';
 
 export default function HotelDetailPage() {
@@ -30,11 +31,7 @@ export default function HotelDetailPage() {
 
   const hotel = selectedHotel;
 
-  const nights = (() => {
-    const ci = new Date(checkIn);
-    const co = new Date(checkOut);
-    return Math.max(1, Math.ceil((co.getTime() - ci.getTime()) / 86400000));
-  })();
+  const nights = calculateNights(checkIn, checkOut);
 
   const handleBookNow = () => {
     if (!selectedRoom) {

@@ -1,8 +1,8 @@
 import { useApp } from '../context/AppContext';
 
 export default function ConfirmationPage() {
-  const { bookings, navigate } = useApp();
-  const booking = bookings[0];
+  const { bookings, lastConfirmedBookingId, navigate } = useApp();
+  const booking = bookings.find((b) => b.id === lastConfirmedBookingId) ?? bookings[0];
 
   if (!booking) {
     return (

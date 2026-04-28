@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { calculateNights } from '../utils/dateUtils';
 import type { BookingGuest } from '../types';
 
 const EMPTY_GUEST: BookingGuest = { firstName: '', lastName: '', email: '', phone: '' };
@@ -11,11 +12,7 @@ export default function BookingPage() {
   const [errors, setErrors] = useState<Partial<BookingGuest>>({});
   const [submitting, setSubmitting] = useState(false);
 
-  const nights = (() => {
-    const ci = new Date(checkIn);
-    const co = new Date(checkOut);
-    return Math.max(1, Math.ceil((co.getTime() - ci.getTime()) / 86400000));
-  })();
+  const nights = calculateNights(checkIn, checkOut);
 
   if (!hotel || !room) {
     return (
@@ -130,6 +127,7 @@ export default function BookingPage() {
             <h2 className="text-lg font-bold text-slate-800 mb-5 flex items-center gap-2">
               <span className="text-2xl">💳</span> Payment Details
             </h2>
+            {/* NOTE: Payment section is intentionally non-functional — this is a demo app. */}
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1">Card Number</label>
